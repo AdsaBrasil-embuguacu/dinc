@@ -1,2 +1,2 @@
-# dinc
-Departamento de Integração de Novos Convertidos
+# DINC_PILOTO
+Departamento de novos convertidos

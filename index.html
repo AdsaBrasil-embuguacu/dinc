@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>DINC - Nova Alma</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { min-height: -webkit-fill-available; }
+    .glass-effect { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+    input:focus, select:focus, textarea:focus { transform: scale(1.01); transition: all 0.2s ease; }
+  </style>
+</head>
+<body class="bg-indigo-950 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] min-h-screen flex items-center justify-center p-4">
+  <div class="w-full max-w-md glass-effect rounded-3xl shadow-2xl overflow-hidden border border-white/20">
+    <div class="bg-indigo-900 p-8 text-center text-white relative">
+      <div class="absolute top-0 left-0 w-full h-1 bg-emerald-500"></div>
+      <h1 class="text-3xl font-black tracking-tighter mb-1 text-white">DINC</h1>
+      <p class="text-indigo-300 text-[10px] uppercase tracking-[0.3em] font-bold">Departamento de Integração</p>
+    </div>
+    <form id="dincForm" class="p-6 md:p-8 space-y-4" onsubmit="processarForm(event)">
+      <div class="space-y-1">
+        <label class="flex items-center gap-2 text-xs font-black text-indigo-900 uppercase ml-1"><i class="fa-solid fa-user text-[10px]"></i> Nome do Convertido</label>
+        <input type="text" id="nome" name="nome" required placeholder="NOME COMPLETO" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:bg-white outline-none transition-all text-lg font-medium uppercase">
+      </div>
+      <div class="space-y-1">
+        <label class="flex items-center gap-2 text-xs font-black text-indigo-900 uppercase ml-1"><i class="fa-brands fa-whatsapp text-[10px]"></i> WhatsApp (com DDD)</label>
+        <input type="tel" id="telefone" name="telefone" required placeholder="00 00000-0000" oninput="maskPhone(this)" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:bg-white outline-none transition-all text-lg font-medium">
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div class="space-y-1">
+          <label class="flex items-center gap-2 text-xs font-black text-indigo-900 uppercase ml-1">Decisão</label>
+          <select id="tipo" name="tipo" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 outline-none appearance-none font-bold text-indigo-900 uppercase">
+            <option value="Aceitação">Aceitação</option>
+            <option value="Reconciliação">Reconciliação</option>
+          </select>
+        </div>
+        <div class="space-y-1">
+          <label class="flex items-center gap-2 text-xs font-black text-indigo-900 uppercase ml-1">Batizado?</label>
+          <select id="batizado" name="batizado" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 outline-none appearance-none font-bold text-indigo-900 uppercase">
+            <option value="Não">Não</option>
+            <option value="Sim">Sim</option>
+          </select>
+        </div>
+      </div>
+      <div class="space-y-1">
+        <label class="flex items-center gap-2 text-xs font-black text-indigo-900 uppercase ml-1"><i class="fa-solid fa-comment-dots text-[10px]"></i> Observações</label>
+        <textarea id="obs" name="obs" rows="2" placeholder="ALGO IMPORTANTE SOBRE A DECISÃO..." class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:bg-white outline-none transition-all text-sm font-medium uppercase resize-none"></textarea>
+      </div>
+      <div class="pt-2">
+        <button type="submit" id="btnSubmit" class="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black py-5 rounded-2xl transition-all shadow-xl shadow-emerald-900/20 flex justify-center items-center gap-3 text-lg uppercase tracking-wider">
+          <i class="fa-solid fa-heart-circle-check text-2xl"></i> RECEBER ALMA
+        </button>
+      </div>
+    </form>
+    <div class="p-4 bg-slate-50 text-center border-t border-slate-100"><p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Sincronizado com DINC API</p></div>
+  </div>
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbwEviRWd7qV7supWfdTYedOBndXBIzLRV_QxZpW0TiQgVrdFD1G2buqe0zTiUwrbfhguQ/exec";
+    function maskPhone(i) {
+      let v = i.value.replace(/\D/g,'');
+      v = v.replace(/^(\d{2})(\d)/g,"($1) $2");
+      v = v.replace(/(\d)(\d{4})$/,"$1-$2");
+      i.value = v;
+    }
+    async function processarForm(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btnSubmit');
+      const originalContent = btn.innerHTML;
+      btn.disabled = true;
+      btn.classList.replace('bg-emerald-600', 'bg-slate-400');
+      btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-2xl"></i> SALVANDO...';
+      const formData = {
+        action: 'salvarConvertido',
+        nome: document.getElementById('nome').value,
+        telefone: document.getElementById('telefone').value.replace(/\D/g, ''),
+        tipo: document.getElementById('tipo').value,
+        batizado: document.getElementById('batizado').value,
+        obs: document.getElementById('obs').value
+      };
+      try {
+        fetch(API_URL, { method: 'POST', body: JSON.stringify(formData), mode: 'no-cors' });
+        abrirWhatsapp(formData);
+        setTimeout(() => {
+            e.target.reset();
+            btn.disabled = false;
+            btn.classList.replace('bg-slate-400', 'bg-emerald-600');
+            btn.innerHTML = originalContent;
+        }, 1500);
+      } catch (err) {
+        alert("ERRO NA CONEXÃO");
+        btn.disabled = false;
+        btn.classList.replace('bg-slate-400', 'bg-emerald-600');
+        btn.innerHTML = originalContent;
+      }
+    }
+    function abrirWhatsapp(dados) {
+      const tel = "55" + dados.telefone;
+      const msg = `Olá ${dados.nome.toUpperCase()}! Seja muito bem-vindo(a) à família de Deus! 🌟%0A%0A1️⃣ Boas-vindas: https://nextrisedev.github.io/DINC_PILOTO/administrator/média/IMG-20260129-WA0034.jpg%0A2️⃣ Nossa Arte: https://nextrisedev.github.io/DINC_PILOTO/administrator/média/IMG-20260129-WA0035.jpg%0A3️⃣ Vídeo Especial: https://nextrisedev.github.io/DINC_PILOTO/administrator/média/VID-20260129-WA0033.mp4%0A Horários dos Cultos: https://nextrisedev.github.io/DINC_PILOTO/administrator/média/horarios_cultos.jpg`;
+      const url = `https://api.whatsapp.com/send?phone=${tel}&text=${msg}`;
+      const win = window.open(url, '_blank');
+      if (!win) window.location.href = url;
+    }
+  </script>
+</body>
+</html>
