@@ -6,10 +6,22 @@
   <title>DINC - Nova Alma</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
+ <style>
     body { min-height: -webkit-fill-available; }
     .glass-effect { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
     input:focus, select:focus, textarea:focus { transform: scale(1.01); transition: all 0.2s ease; }
+    
+    /* Modal de Feedback Otimista (Toast) */
+    .toast-feedback {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(150%);
+      padding: 1rem 1.5rem; border-radius: 1rem; color: white; font-weight: 900; z-index: 200;
+      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      display: flex; align-items: center; gap: 10px; width: 90%; max-width: 400px; justify-content: center;
+      text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.05em;
+    }
+    .toast-feedback.show { transform: translateX(-50%) translateY(0); }
+    .toast-success { background-color: #10B981; border: 2px solid #059669; }
+    .toast-error { background-color: #EF4444; border: 2px solid #B91C1C; }
   </style>
 </head>
 <body class="bg-indigo-950 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] min-h-screen flex items-center justify-center p-4">
@@ -24,10 +36,17 @@
         <label class="flex items-center gap-2 text-xs font-black text-indigo-900 uppercase ml-1"><i class="fa-solid fa-user text-[10px]"></i> Nome do Convertido</label>
         <input type="text" id="nome" name="nome" required placeholder="NOME COMPLETO" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:bg-white outline-none transition-all text-lg font-medium uppercase">
       </div>
+      
       <div class="space-y-1">
         <label class="flex items-center gap-2 text-xs font-black text-indigo-900 uppercase ml-1"><i class="fa-brands fa-whatsapp text-[10px]"></i> WhatsApp (com DDD)</label>
         <input type="tel" id="telefone" name="telefone" required placeholder="00 00000-0000" oninput="maskPhone(this)" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:bg-white outline-none transition-all text-lg font-medium">
       </div>
+
+      <div class="space-y-1">
+        <label class="flex items-center gap-2 text-xs font-black text-indigo-900 uppercase ml-1"><i class="fa-solid fa-map-location-dot text-[10px]"></i> Endereço Completo</label>
+        <textarea id="endereco" name="endereco" required rows="2" placeholder="RUA, NÚMERO, BAIRRO, CEP..." class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:bg-white outline-none transition-all text-sm font-medium uppercase resize-none"></textarea>
+      </div>
+
       <div class="grid grid-cols-2 gap-4">
         <div class="space-y-1">
           <label class="flex items-center gap-2 text-xs font-black text-indigo-900 uppercase ml-1">Decisão</label>
@@ -37,17 +56,27 @@
           </select>
         </div>
         <div class="space-y-1">
-          <label class="flex items-center gap-2 text-xs font-black text-indigo-900 uppercase ml-1">Batizado?</label>
-          <select id="batizado" name="batizado" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 outline-none appearance-none font-bold text-indigo-900 uppercase">
+          <label class="flex items-center gap-2 text-xs font-black text-indigo-900 uppercase ml-1">Já foi Cristão?</label>
+          <select id="ja_cristao" name="ja_cristao" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 outline-none appearance-none font-bold text-indigo-900 uppercase">
             <option value="Não">Não</option>
             <option value="Sim">Sim</option>
           </select>
         </div>
       </div>
+
+      <div class="space-y-1">
+        <label class="flex items-center gap-2 text-xs font-black text-indigo-900 uppercase ml-1">Batizado nas Águas?</label>
+        <select id="batizado" name="batizado" class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 outline-none appearance-none font-bold text-indigo-900 uppercase">
+          <option value="Não">Não</option>
+          <option value="Sim">Sim</option>
+        </select>
+      </div>
+
       <div class="space-y-1">
         <label class="flex items-center gap-2 text-xs font-black text-indigo-900 uppercase ml-1"><i class="fa-solid fa-comment-dots text-[10px]"></i> Observações</label>
         <textarea id="obs" name="obs" rows="2" placeholder="ALGO IMPORTANTE SOBRE A DECISÃO..." class="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:bg-white outline-none transition-all text-sm font-medium uppercase resize-none"></textarea>
       </div>
+
       <div class="pt-2">
         <button type="submit" id="btnSubmit" class="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black py-5 rounded-2xl transition-all shadow-xl shadow-emerald-900/20 flex justify-center items-center gap-3 text-lg uppercase tracking-wider">
           <i class="fa-solid fa-heart-circle-check text-2xl"></i> RECEBER ALMA
@@ -56,14 +85,35 @@
     </form>
     <div class="p-4 bg-slate-50 text-center border-t border-slate-100"><p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Sincronizado com DINC API</p></div>
   </div>
+
+  <div id="feedbackToast" class="toast-feedback">
+    <i id="toastIcon" class="fa-solid fa-circle-info text-xl"></i>
+    <span id="toastMessage">Processando...</span>
+  </div>
+
   <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbwEviRWd7qV7supWfdTYedOBndXBIzLRV_QxZpW0TiQgVrdFD1G2buqe0zTiUwrbfhguQ/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbzy1lt67_Fu0q1SE51tNdQmCR0sD16L85z9HZwFWT4BRj5IJVpXmTTF7MDtaf7QUxtg/exec";
+    
     function maskPhone(i) {
       let v = i.value.replace(/\D/g,'');
       v = v.replace(/^(\d{2})(\d)/g,"($1) $2");
       v = v.replace(/(\d)(\d{4})$/,"$1-$2");
       i.value = v;
     }
+
+    function showToast(msg, type = 'success') {
+      const toast = document.getElementById('feedbackToast');
+      const icon = document.getElementById('toastIcon');
+      toast.className = `toast-feedback toast-${type}`;
+      document.getElementById('toastMessage').innerText = msg;
+      
+      if(type === 'success') icon.className = 'fa-solid fa-check-circle text-xl';
+      else if(type === 'error') icon.className = 'fa-solid fa-triangle-exclamation text-xl';
+
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3500);
+    }
+
     async function processarForm(e) {
       e.preventDefault();
       const btn = document.getElementById('btnSubmit');
@@ -71,16 +121,21 @@
       btn.disabled = true;
       btn.classList.replace('bg-emerald-600', 'bg-slate-400');
       btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-2xl"></i> SALVANDO...';
+      
       const formData = {
         action: 'salvarConvertido',
         nome: document.getElementById('nome').value,
         telefone: document.getElementById('telefone').value.replace(/\D/g, ''),
+        endereco: document.getElementById('endereco').value,
         tipo: document.getElementById('tipo').value,
+        ja_cristao: document.getElementById('ja_cristao').value,
         batizado: document.getElementById('batizado').value,
         obs: document.getElementById('obs').value
       };
+
       try {
         fetch(API_URL, { method: 'POST', body: JSON.stringify(formData), mode: 'no-cors' });
+        showToast("Alma registrada com sucesso!", "success");
         abrirWhatsapp(formData);
         setTimeout(() => {
             e.target.reset();
@@ -89,12 +144,13 @@
             btn.innerHTML = originalContent;
         }, 1500);
       } catch (err) {
-        alert("ERRO NA CONEXÃO");
+        showToast("Erro na conexão com o servidor.", "error");
         btn.disabled = false;
         btn.classList.replace('bg-slate-400', 'bg-emerald-600');
         btn.innerHTML = originalContent;
       }
     }
+
     function abrirWhatsapp(dados) {
       const tel = "55" + dados.telefone;
       const msg = `Olá ${dados.nome.toUpperCase()}! Seja muito bem-vindo(a) à família de Deus! 🌟%0A%0A1️⃣ Boas-vindas: https://nextrisedev.github.io/DINC_PILOTO/administrator/média/IMG-20260129-WA0034.jpg%0A2️⃣ Nossa Arte: https://nextrisedev.github.io/DINC_PILOTO/administrator/média/IMG-20260129-WA0035.jpg%0A3️⃣ Vídeo Especial: https://nextrisedev.github.io/DINC_PILOTO/administrator/média/VID-20260129-WA0033.mp4%0A Horários dos Cultos: https://nextrisedev.github.io/DINC_PILOTO/administrator/média/horarios_cultos.jpg`;
